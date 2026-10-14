@@ -1,0 +1,13 @@
+# Archivos temporales de Visual Studio / SSIS / SSAS
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.dtproj.user
+*.bim.layout
+*.dbmdl
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
