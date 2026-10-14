@@ -71,10 +71,6 @@ Se definieron 5 dimensiones desnormalizadas para conformar un esquema en estrell
   * `MontoTotalLinea` (Aditiva - Derivada): Ingreso bruto de la línea (`Cantidad * PrecioUnitario`).
   * `DiasDespacho` (Semi-aditiva - Derivada): Días entre pedido y envío (`FechaEnvio - Fecha`).
 
-### Proceso de negocio
-### Granularidad
-### Dimensiones
-### Tabla de hechos y medidas
 ## Proceso ETL - Fase 1
 
 ## Cubo OLAP - Fase 2
