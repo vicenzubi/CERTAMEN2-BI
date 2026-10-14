@@ -71,11 +71,6 @@ Se definieron 5 dimensiones desnormalizadas para conformar un esquema en estrell
   * `MontoTotalLinea` (Aditiva - Derivada): Ingreso bruto de la línea (`Cantidad * PrecioUnitario`).
   * `DiasDespacho` (Semi-aditiva - Derivada): Días entre pedido y envío (`FechaEnvio - Fecha`).
 
-### 5. Implementación física y Diagrama del Modelo Estrella
-El script DDL de creación de la base de datos dimensional (`DW_BikeZ`), junto con el poblamiento inicial de `DimTiempo` y el registro *Dummy* de vendedores, se encuentra disponible en [`database/scripts/01_Crear_DW_BikeZ.sql`](database/scripts/01_Crear_DW_BikeZ.sql).
-
-![Diagrama Modelo Estrella Bike Z](docs/modelo-dimensional/modelo_estrella_bikez.png)
-
 ### Proceso de negocio
 ### Granularidad
 ### Dimensiones
