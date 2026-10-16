@@ -131,7 +131,7 @@ Existen dos opciones para cargar la base de datos dimensional en su entorno loca
 * **Opción B (Restaurar Backup):** En SSMS, restaurar el archivo `DW_BikeZ.bak` ubicado en la carpeta [`database/backup/`](database/backup/).
 
 ### Paso 2: Ejecución del proceso ETL
-1. Abrir la solución de Visual Studio ubicada en [`etl/proyecto-ssis/ETL_BikeZ.sln`](etl/proyecto-ssis/ETL_BikeZ.sln).
+1. Abrir la solución de Visual Studio ubicada en [`etl/proyecto-ssis/ETL_BikeZ.sln`](etl/proyecto-ssis/ETL_BikeZ/ETL_BikeZ.sln).
 2. En el panel *Connection Managers*, verificar que las conexiones `CM_OLTP_BikeZ` y `CM_DW_BikeZ` apunten al nombre de su servidor local (ej. `localhost` o `.\SQLEXPRESS`).
 3. Abrir el paquete `Carga_DW_BikeZ.dtsx` y presionar **Iniciar (Start)**.
 4. El paquete ejecutará primero la tarea de limpieza (`Limpiar DW_BikeZ`) garantizando la idempotencia, y luego poblará las 5 dimensiones y la tabla de hechos.
