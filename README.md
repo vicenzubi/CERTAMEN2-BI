@@ -77,7 +77,18 @@ El script DDL de creación de la base de datos dimensional (`DW_BikeZ`), junto c
 ![Diagrama Modelo Estrella Bike Z](docs/modelo-dimensional/modelo_estrella.png)
 
 ## Proceso ETL - Fase 1
+### Arquitectura Idempotente
+1. **Limpieza Previa:** Se utiliza un *Execute SQL Task* que elimina los registros en orden jerárquico, reinicia los contadores `IDENTITY` y reinserta los *Dummys* antes de cada carga, garantizando que el paquete sea re-ejecutable sin duplicar datos.
+2. **Transformaciones:** Uso de componentes *Derived Column* y *Lookups* para asignación de *Surrogate Keys*. 
 
+![Flujo de Control ETL](docs/modelo-dimensional/etl_control_flow.png)
+![Flujo de Datos FactVentas](docs/modelo-dimensional/etl_fact_ventas.png)
+
+### Validación y Cuadratura
+Se verificó la carga exacta de las **121.317 líneas de venta**, **274.914 unidades** y **$110.373.889,31 en ingresos** entre la base transaccional y el Data Warehouse. El script de auditoría está en [`02_Validacion_Carga_ETL.sql`](database/scripts/02_Validacion_Carga_ETL.sql).
+
+![Validación de Carga ETL](docs/modelo-dimensional/evidencia_validacion_etl.png)
+---
 ## Cubo OLAP - Fase 2
 *(Pendiente para Fase 2)*
 
@@ -95,7 +106,6 @@ CERTAMEN2-BI/
 |-- README.md
 |-- docs/
 | |-- modelo-dimensional/
-| `-- presentacion/
 |-- database/
 | |-- scripts/
 | `-- backup/
@@ -108,4 +118,31 @@ CERTAMEN2-BI/
 ```
 
 ## Instrucciones de ejecución/revisión
+Para que el profesor pueda replicar y evaluar el proyecto sin errores de conexión o dependencias, se deben seguir estos pasos:
+
+### Prerrequisitos
+* **Motor de BD:** Microsoft SQL Server y SQL Server Management Studio (SSMS).
+* **ETL:** Visual Studio con la extensión de *Integration Services* (SSIS) instalada.
+* Tener restaurada la base de datos transaccional original (`BikeZ`) en el servidor local.
+
+### Paso 1: Despliegue del Data Warehouse
+Existen dos opciones para cargar la base de datos dimensional en su entorno local:
+* **Opción A (Desde cero):** Abrir SSMS y ejecutar el script [`database/scripts/01_Crear_DW_BikeZ.sql`](database/scripts/01_Crear_DW_BikeZ.sql). Esto creará la base `DW_BikeZ` vacía, construirá el modelo en estrella y poblará la dimensión `DimTiempo`.
+* **Opción B (Restaurar Backup):** En SSMS, restaurar el archivo `DW_BikeZ.bak` ubicado en la carpeta [`database/backup/`](database/backup/).
+
+### Paso 2: Ejecución del proceso ETL
+1. Abrir la solución de Visual Studio ubicada en [`etl/proyecto-ssis/ETL_BikeZ.sln`](etl/proyecto-ssis/ETL_BikeZ/ETL_BikeZ.sln).
+2. En el panel *Connection Managers*, verificar que las conexiones `CM_OLTP_BikeZ` y `CM_DW_BikeZ` apunten al nombre de su servidor local (ej. `localhost` o `.\SQLEXPRESS`).
+3. Abrir el paquete `Carga_DW_BikeZ.dtsx` y presionar **Iniciar (Start)**.
+4. El paquete ejecutará primero la tarea de limpieza (`Limpiar DW_BikeZ`) garantizando la idempotencia, y luego poblará las 5 dimensiones y la tabla de hechos.
+
+### Paso 3: Verificación 
+Para verificar que los datos cargados son exactos, ejecutar el script [`database/scripts/02_Validacion_Carga_ETL.sql`](database/scripts/02_Validacion_Carga_ETL.sql) en SSMS.
+
+---
 ## Distribución de responsabilidades y aportes
+El desarrollo de este proyecto se gestionó mediante control de versiones en GitHub, utilizando ramas (`feature/`) y *Pull Requests* para la revisión de código cruzada. 
+
+ **Vicente Zubicueta** : Configurador principal del repositorio, desarrollo integral del paquete SSIS, diseño físico del modelo en estrella y elaboración del script DDL, creación de los scripts SQL de validación de carga. 
+
+ **Joaquin Ojeda** : Definición y justificación estratégica de los 4 KPIs del negocio, aplicación de la metodología Kimball, estructuración de la documentación y diagramas.

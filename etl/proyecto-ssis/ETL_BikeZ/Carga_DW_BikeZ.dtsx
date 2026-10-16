@@ -11,8 +11,8 @@
   DTS:LocaleID="13322"
   DTS:ObjectName="Package"
   DTS:PackageType="5"
-  DTS:VersionBuild="5"
-  DTS:VersionGUID="{2512E39A-568E-46D4-BB2E-127B34B1260C}">
+  DTS:VersionBuild="11"
+  DTS:VersionGUID="{EEBE47E6-F335-4E30-83EF-ED175B1AF757}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -42,6 +42,8 @@
     </DTS:ConnectionManager>
   </DTS:ConnectionManagers>
   <DTS:Variables />
+  <DTS:LoggingOptions
+    DTS:LoggingMode="2" />
   <DTS:Executables>
     <DTS:Executable
       DTS:refId="Package\Carga DimCliente"
@@ -1979,7 +1981,7 @@ FROM Empleados;</property>
                       cachedDataType="numeric"
                       cachedName="MontoTotalLinea"
                       cachedPrecision="18"
-                      cachedScale="2"
+                      cachedScale="4"
                       externalMetadataColumnId="Package\Carga FactVentas\Destino FactVentas.Inputs[OLE DB Destination Input].ExternalColumns[MontoTotalLinea]"
                       lineageId="Package\Carga FactVentas\Transformar Nulos y Calcular Medidas.Outputs[Derived Column Output].Columns[MontoTotalLinea]" />
                     <inputColumn
@@ -2774,7 +2776,7 @@ where [refTable].[EmpleadoID] = ?</property>
     CAST(v.Fecha AS DATE) AS FechaPedido,
     CAST(v.FechaEnvio AS DATE) AS FechaEnvio,
     CAST(dv.Cantidad AS INT) AS Cantidad,
-    CAST(dv.PrecioUnitario AS NUMERIC(18,2)) AS PrecioUnitario
+    CAST(dv.PrecioUnitario AS DECIMAL(18,4)) AS PrecioUnitario
 FROM Ventas v
 INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
                 <property
@@ -2974,7 +2976,7 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
                       dataType="numeric"
                       name="PrecioUnitario"
                       precision="18"
-                      scale="2" />
+                      scale="4" />
                   </externalMetadataColumns>
                 </output>
                 <output
@@ -3043,7 +3045,7 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
                       lineageId="Package\Carga FactVentas\Origen Ventas y DetalleVentas.Outputs[OLE DB Source Error Output].Columns[PrecioUnitario]"
                       name="PrecioUnitario"
                       precision="18"
-                      scale="2" />
+                      scale="4" />
                     <outputColumn
                       refId="Package\Carga FactVentas\Origen Ventas y DetalleVentas.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
                       dataType="i4"
@@ -3139,20 +3141,20 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
                       lineageId="Package\Carga FactVentas\Transformar Nulos y Calcular Medidas.Outputs[Derived Column Output].Columns[MontoTotalLinea]"
                       name="MontoTotalLinea"
                       precision="18"
-                      scale="2"
+                      scale="4"
                       truncationRowDisposition="FailComponent">
                       <properties>
                         <property
                           containsID="true"
                           dataType="System.String"
                           description="Derived Column Expression"
-                          name="Expression">(DT_NUMERIC,18,2)(#{Package\Carga FactVentas\Origen Ventas y DetalleVentas.Outputs[OLE DB Source Output].Columns[Cantidad]} * #{Package\Carga FactVentas\Origen Ventas y DetalleVentas.Outputs[OLE DB Source Output].Columns[PrecioUnitario]})</property>
+                          name="Expression">(DT_NUMERIC,18,4)(#{Package\Carga FactVentas\Origen Ventas y DetalleVentas.Outputs[OLE DB Source Output].Columns[Cantidad]} * #{Package\Carga FactVentas\Origen Ventas y DetalleVentas.Outputs[OLE DB Source Output].Columns[PrecioUnitario]})</property>
                         <property
                           containsID="true"
                           dataType="System.String"
                           description="Derived Column Friendly Expression"
                           expressionType="Notify"
-                          name="FriendlyExpression">(DT_NUMERIC,18,2)(Cantidad * PrecioUnitario)</property>
+                          name="FriendlyExpression">(DT_NUMERIC,18,4)(Cantidad * PrecioUnitario)</property>
                       </properties>
                     </outputColumn>
                     <outputColumn
@@ -3314,29 +3316,29 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
       <GraphLayout
         Capacity="16" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
         <NodeLayout
-          Size="171,42"
-          Id="Package\Limpiar DW_BikeZ"
-          TopLeft="463,98" />
+          Size="166,42"
+          Id="Package\Carga DimCliente"
+          TopLeft="467,240" />
         <NodeLayout
           Size="176,42"
           Id="Package\Carga DimProducto"
           TopLeft="463,168" />
         <NodeLayout
-          Size="166,42"
-          Id="Package\Carga DimCliente"
-          TopLeft="467,240" />
+          Size="176,42"
+          Id="Package\Carga DimTerritorio"
+          TopLeft="461,384" />
         <NodeLayout
           Size="179,42"
           Id="Package\Carga DimVendedor"
           TopLeft="460,313" />
         <NodeLayout
-          Size="176,42"
-          Id="Package\Carga DimTerritorio"
-          TopLeft="461,384" />
-        <NodeLayout
           Size="168,42"
           Id="Package\Carga FactVentas"
           TopLeft="465,455" />
+        <NodeLayout
+          Size="171,42"
+          Id="Package\Limpiar DW_BikeZ"
+          TopLeft="463,98" />
         <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint]"
           TopLeft="549.75,140">
@@ -3451,70 +3453,6 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
     </LayoutInfo>
   </Package>
   <TaskHost
-    design-time-name="Package\Carga DimProducto">
-    <LayoutInfo>
-      <GraphLayout
-        Capacity="8" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
-        <NodeLayout
-          Size="229,42"
-          Id="Package\Carga DimProducto\Origen Productos y Categorias"
-          TopLeft="408,162" />
-        <NodeLayout
-          Size="193,42"
-          Id="Package\Carga DimProducto\Limpiar Nulos Producto"
-          TopLeft="423,248" />
-        <NodeLayout
-          Size="183,42"
-          Id="Package\Carga DimProducto\Destino DimProducto"
-          TopLeft="426,350" />
-        <EdgeLayout
-          Id="Package\Carga DimProducto.Paths[OLE DB Source Output]"
-          TopLeft="521,204">
-          <EdgeLayout.Curve>
-            <mssgle:Curve
-              StartConnector="{assembly:Null}"
-              EndConnector="0,44"
-              Start="0,0"
-              End="0,36.5">
-              <mssgle:Curve.Segments>
-                <mssgle:SegmentCollection
-                  Capacity="5">
-                  <mssgle:LineSegment
-                    End="0,36.5" />
-                </mssgle:SegmentCollection>
-              </mssgle:Curve.Segments>
-            </mssgle:Curve>
-          </EdgeLayout.Curve>
-          <EdgeLayout.Labels>
-            <EdgeLabelCollection />
-          </EdgeLayout.Labels>
-        </EdgeLayout>
-        <EdgeLayout
-          Id="Package\Carga DimProducto.Paths[Derived Column Output]"
-          TopLeft="518.5,290">
-          <EdgeLayout.Curve>
-            <mssgle:Curve
-              StartConnector="{assembly:Null}"
-              EndConnector="0,60"
-              Start="0,0"
-              End="0,52.5">
-              <mssgle:Curve.Segments>
-                <mssgle:SegmentCollection
-                  Capacity="5">
-                  <mssgle:LineSegment
-                    End="0,52.5" />
-                </mssgle:SegmentCollection>
-              </mssgle:Curve.Segments>
-            </mssgle:Curve>
-          </EdgeLayout.Curve>
-          <EdgeLayout.Labels>
-            <EdgeLabelCollection />
-          </EdgeLayout.Labels>
-        </EdgeLayout>
-      </GraphLayout>
-    </LayoutInfo>
-  </TaskHost>
-  <TaskHost
     design-time-name="Package\Carga DimCliente">
     <LayoutInfo>
       <GraphLayout
@@ -3578,33 +3516,80 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
       </GraphLayout>
     </LayoutInfo>
   </TaskHost>
+  <PipelineComponentMetadata
+    design-time-name="Package\Carga DimCliente\Origen Clientes">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+  <PipelineComponentMetadata
+    design-time-name="Package\Carga DimCliente\Destino DimCliente">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+      <Property>
+        <Name>TableInfoObjectType</Name>
+        <Value
+          type="q2:string">Table</Value>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
   <TaskHost
-    design-time-name="Package\Carga DimVendedor">
+    design-time-name="Package\Carga DimProducto">
     <LayoutInfo>
       <GraphLayout
-        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        Capacity="8" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
         <NodeLayout
-          Size="170,42"
-          Id="Package\Carga DimVendedor\Origen Empleados"
-          TopLeft="169,144" />
+          Size="229,42"
+          Id="Package\Carga DimProducto\Origen Productos y Categorias"
+          TopLeft="408,162" />
         <NodeLayout
-          Size="187,42"
-          Id="Package\Carga DimVendedor\Destino DimVendedor"
-          TopLeft="162,253" />
+          Size="193,42"
+          Id="Package\Carga DimProducto\Limpiar Nulos Producto"
+          TopLeft="423,248" />
+        <NodeLayout
+          Size="183,42"
+          Id="Package\Carga DimProducto\Destino DimProducto"
+          TopLeft="426,350" />
         <EdgeLayout
-          Id="Package\Carga DimVendedor.Paths[OLE DB Source Output]"
-          TopLeft="254.75,186">
+          Id="Package\Carga DimProducto.Paths[OLE DB Source Output]"
+          TopLeft="521,204">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="0,67"
+              EndConnector="0,44"
               Start="0,0"
-              End="0,59.5">
+              End="0,36.5">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,59.5" />
+                    End="0,36.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Carga DimProducto.Paths[Derived Column Output]"
+          TopLeft="518.5,290">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,60"
+              Start="0,0"
+              End="0,52.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,52.5" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
@@ -3616,6 +3601,27 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
       </GraphLayout>
     </LayoutInfo>
   </TaskHost>
+  <PipelineComponentMetadata
+    design-time-name="Package\Carga DimProducto\Origen Productos y Categorias">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+  <PipelineComponentMetadata
+    design-time-name="Package\Carga DimProducto\Destino DimProducto">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+      <Property>
+        <Name>TableInfoObjectType</Name>
+        <Value
+          type="q2:string">Table</Value>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
   <TaskHost
     design-time-name="Package\Carga DimTerritorio">
     <LayoutInfo>
@@ -3654,23 +3660,119 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
       </GraphLayout>
     </LayoutInfo>
   </TaskHost>
+  <PipelineComponentMetadata
+    design-time-name="Package\Carga DimTerritorio\Destino DimTerritorio">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+      <Property>
+        <Name>TableInfoObjectType</Name>
+        <Value
+          type="q2:string">Table</Value>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+  <PipelineComponentMetadata
+    design-time-name="Package\Carga DimTerritorio\Origen Territorios Paises Almacenes">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+  <TaskHost
+    design-time-name="Package\Carga DimVendedor">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        <NodeLayout
+          Size="170,42"
+          Id="Package\Carga DimVendedor\Origen Empleados"
+          TopLeft="169,144" />
+        <NodeLayout
+          Size="187,42"
+          Id="Package\Carga DimVendedor\Destino DimVendedor"
+          TopLeft="162,253" />
+        <EdgeLayout
+          Id="Package\Carga DimVendedor.Paths[OLE DB Source Output]"
+          TopLeft="254.75,186">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,67"
+              Start="0,0"
+              End="0,59.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,59.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </TaskHost>
+  <PipelineComponentMetadata
+    design-time-name="Package\Carga DimVendedor\Destino DimVendedor">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+      <Property>
+        <Name>TableInfoObjectType</Name>
+        <Value
+          type="q2:string">Table</Value>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+  <PipelineComponentMetadata
+    design-time-name="Package\Carga DimVendedor\Origen Empleados">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
   <TaskHost
     design-time-name="Package\Carga FactVentas">
     <LayoutInfo>
       <GraphLayout
         Capacity="16" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
         <NodeLayout
+          Size="172,42"
+          Id="Package\Carga FactVentas\Lookup DimCliente"
+          TopLeft="474,416" />
+        <NodeLayout
+          Size="182,42"
+          Id="Package\Carga FactVentas\Lookup DimTerritorio"
+          TopLeft="463,567" />
+        <NodeLayout
           Size="229,42"
           Id="Package\Carga FactVentas\Origen Ventas y DetalleVentas"
           TopLeft="446,202" />
+        <NodeLayout
+          Size="266,42"
+          Id="Package\Carga FactVentas\Transformar Nulos y Calcular Medidas"
+          TopLeft="422,281" />
         <NodeLayout
           Size="175,42"
           Id="Package\Carga FactVentas\Destino FactVentas"
           TopLeft="469,638" />
         <NodeLayout
-          Size="266,42"
-          Id="Package\Carga FactVentas\Transformar Nulos y Calcular Medidas"
-          TopLeft="422,281" />
+          Size="182,42"
+          Id="Package\Carga FactVentas\Lookup DimProducto"
+          TopLeft="468,348" />
+        <NodeLayout
+          Size="185,42"
+          Id="Package\Carga FactVentas\Lookup DimVendedor"
+          TopLeft="461,492" />
         <EdgeLayout
           Id="Package\Carga FactVentas.Paths[OLE DB Source Output]"
           TopLeft="557.75,244">
@@ -3693,89 +3795,27 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
             <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
-        <NodeLayout
-          Size="182,42"
-          Id="Package\Carga FactVentas\Lookup DimProducto"
-          TopLeft="468,348" />
-        <NodeLayout
-          Size="185,42"
-          Id="Package\Carga FactVentas\Lookup DimVendedor"
-          TopLeft="461,492" />
-        <NodeLayout
-          Size="182,42"
-          Id="Package\Carga FactVentas\Lookup DimTerritorio"
-          TopLeft="463,567" />
         <EdgeLayout
-          Id="Package\Carga FactVentas.Paths[Derived Column Output]"
-          TopLeft="557,323">
+          Id="Package\Carga FactVentas.Paths[Lookup Match Output3]"
+          TopLeft="559.5,390">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="0,25"
+              EndConnector="0,26"
               Start="0,0"
-              End="0,17.5">
+              End="0,18.5">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,17.5" />
-                </mssgle:SegmentCollection>
-              </mssgle:Curve.Segments>
-            </mssgle:Curve>
-          </EdgeLayout.Curve>
-          <EdgeLayout.Labels>
-            <EdgeLabelCollection />
-          </EdgeLayout.Labels>
-        </EdgeLayout>
-        <EdgeLayout
-          Id="Package\Carga FactVentas.Paths[Lookup Match Output]"
-          TopLeft="553.75,534">
-          <EdgeLayout.Curve>
-            <mssgle:Curve
-              StartConnector="{assembly:Null}"
-              EndConnector="0,33"
-              Start="0,0"
-              End="0,25.5">
-              <mssgle:Curve.Segments>
-                <mssgle:SegmentCollection
-                  Capacity="5">
-                  <mssgle:LineSegment
-                    End="0,25.5" />
+                    End="0,18.5" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
-              BoundingBox="-48.19138671875,6.9453125,96.3827734375,11.609375"
-              RelativePosition="Any" />
-          </EdgeLayout.Labels>
-        </EdgeLayout>
-        <NodeLayout
-          Size="172,42"
-          Id="Package\Carga FactVentas\Lookup DimCliente"
-          TopLeft="474,416" />
-        <EdgeLayout
-          Id="Package\Carga FactVentas.Paths[Lookup Match Output1]"
-          TopLeft="556.75,458">
-          <EdgeLayout.Curve>
-            <mssgle:Curve
-              StartConnector="{assembly:Null}"
-              EndConnector="0,34"
-              Start="0,0"
-              End="0,26.5">
-              <mssgle:Curve.Segments>
-                <mssgle:SegmentCollection
-                  Capacity="5">
-                  <mssgle:LineSegment
-                    End="0,26.5" />
-                </mssgle:SegmentCollection>
-              </mssgle:Curve.Segments>
-            </mssgle:Curve>
-          </EdgeLayout.Curve>
-          <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="-48.19138671875,7.4453125,96.3827734375,11.609375"
+              BoundingBox="-48.19138671875,3.4453125,96.3827734375,11.609375"
               RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
@@ -3804,113 +3844,121 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
-          Id="Package\Carga FactVentas.Paths[Lookup Match Output3]"
-          TopLeft="559.5,390">
+          Id="Package\Carga FactVentas.Paths[Lookup Match Output1]"
+          TopLeft="556.75,458">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="0,26"
+              EndConnector="0,34"
               Start="0,0"
-              End="0,18.5">
+              End="0,26.5">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,18.5" />
+                    End="0,26.5" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
-              BoundingBox="-48.19138671875,3.4453125,96.3827734375,11.609375"
+              BoundingBox="-48.19138671875,7.4453125,96.3827734375,11.609375"
               RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Carga FactVentas.Paths[Lookup Match Output]"
+          TopLeft="553.75,534">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,33"
+              Start="0,0"
+              End="0,25.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,25.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <mssgm:EdgeLabel
+              BoundingBox="-48.19138671875,6.9453125,96.3827734375,11.609375"
+              RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Carga FactVentas.Paths[Derived Column Output]"
+          TopLeft="557,323">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,25"
+              Start="0,0"
+              End="0,17.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,17.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>
     </LayoutInfo>
   </TaskHost>
   <PipelineComponentMetadata
-    design-time-name="Package\Carga DimProducto\Origen Productos y Categorias">
+    design-time-name="Package\Carga FactVentas\Lookup DimCliente">
     <Properties>
       <Property>
-        <Name>DataSourceViewID</Name>
+        <Name>OverwriteParamsSQLProp</Name>
+        <Value
+          type="q2:string">false</Value>
       </Property>
-    </Properties>
-  </PipelineComponentMetadata>
-  <PipelineComponentMetadata
-    design-time-name="Package\Carga DimProducto\Destino DimProducto">
-    <Properties>
       <Property>
-        <Name>DataSourceViewID</Name>
+        <Name>UsedTableName</Name>
+        <Value
+          type="q3:string">[dbo].[DimCliente]</Value>
       </Property>
       <Property>
         <Name>TableInfoObjectType</Name>
         <Value
-          type="q2:string">Table</Value>
+          type="q4:string">0</Value>
       </Property>
-    </Properties>
-  </PipelineComponentMetadata>
-  <PipelineComponentMetadata
-    design-time-name="Package\Carga DimCliente\Origen Clientes">
-    <Properties>
       <Property>
         <Name>DataSourceViewID</Name>
       </Property>
     </Properties>
   </PipelineComponentMetadata>
   <PipelineComponentMetadata
-    design-time-name="Package\Carga DimCliente\Destino DimCliente">
+    design-time-name="Package\Carga FactVentas\Lookup DimTerritorio">
     <Properties>
       <Property>
-        <Name>DataSourceViewID</Name>
+        <Name>OverwriteParamsSQLProp</Name>
+        <Value
+          type="q2:string">false</Value>
+      </Property>
+      <Property>
+        <Name>UsedTableName</Name>
+        <Value
+          type="q3:string">[dbo].[DimTerritorio]</Value>
       </Property>
       <Property>
         <Name>TableInfoObjectType</Name>
         <Value
-          type="q2:string">Table</Value>
+          type="q4:string">0</Value>
       </Property>
-    </Properties>
-  </PipelineComponentMetadata>
-  <PipelineComponentMetadata
-    design-time-name="Package\Carga DimVendedor\Origen Empleados">
-    <Properties>
       <Property>
         <Name>DataSourceViewID</Name>
-      </Property>
-    </Properties>
-  </PipelineComponentMetadata>
-  <PipelineComponentMetadata
-    design-time-name="Package\Carga DimVendedor\Destino DimVendedor">
-    <Properties>
-      <Property>
-        <Name>DataSourceViewID</Name>
-      </Property>
-      <Property>
-        <Name>TableInfoObjectType</Name>
-        <Value
-          type="q2:string">Table</Value>
-      </Property>
-    </Properties>
-  </PipelineComponentMetadata>
-  <PipelineComponentMetadata
-    design-time-name="Package\Carga DimTerritorio\Origen Territorios Paises Almacenes">
-    <Properties>
-      <Property>
-        <Name>DataSourceViewID</Name>
-      </Property>
-    </Properties>
-  </PipelineComponentMetadata>
-  <PipelineComponentMetadata
-    design-time-name="Package\Carga DimTerritorio\Destino DimTerritorio">
-    <Properties>
-      <Property>
-        <Name>DataSourceViewID</Name>
-      </Property>
-      <Property>
-        <Name>TableInfoObjectType</Name>
-        <Value
-          type="q2:string">Table</Value>
       </Property>
     </Properties>
   </PipelineComponentMetadata>
@@ -3941,7 +3989,7 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
       <Property>
         <Name>OverwriteParamsSQLProp</Name>
         <Value
-          type="q2:boolean">false</Value>
+          type="q2:string">false</Value>
       </Property>
       <Property>
         <Name>UsedTableName</Name>
@@ -3951,7 +3999,7 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
       <Property>
         <Name>TableInfoObjectType</Name>
         <Value
-          type="q4:int">0</Value>
+          type="q4:string">0</Value>
       </Property>
       <Property>
         <Name>DataSourceViewID</Name>
@@ -3964,7 +4012,7 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
       <Property>
         <Name>OverwriteParamsSQLProp</Name>
         <Value
-          type="q2:boolean">false</Value>
+          type="q2:string">false</Value>
       </Property>
       <Property>
         <Name>UsedTableName</Name>
@@ -3974,53 +4022,7 @@ INNER JOIN DetalleVentas dv ON v.VentaID = dv.VentaID;</property>
       <Property>
         <Name>TableInfoObjectType</Name>
         <Value
-          type="q4:int">0</Value>
-      </Property>
-      <Property>
-        <Name>DataSourceViewID</Name>
-      </Property>
-    </Properties>
-  </PipelineComponentMetadata>
-  <PipelineComponentMetadata
-    design-time-name="Package\Carga FactVentas\Lookup DimTerritorio">
-    <Properties>
-      <Property>
-        <Name>OverwriteParamsSQLProp</Name>
-        <Value
-          type="q2:boolean">false</Value>
-      </Property>
-      <Property>
-        <Name>UsedTableName</Name>
-        <Value
-          type="q3:string">[dbo].[DimTerritorio]</Value>
-      </Property>
-      <Property>
-        <Name>TableInfoObjectType</Name>
-        <Value
-          type="q4:int">0</Value>
-      </Property>
-      <Property>
-        <Name>DataSourceViewID</Name>
-      </Property>
-    </Properties>
-  </PipelineComponentMetadata>
-  <PipelineComponentMetadata
-    design-time-name="Package\Carga FactVentas\Lookup DimCliente">
-    <Properties>
-      <Property>
-        <Name>OverwriteParamsSQLProp</Name>
-        <Value
-          type="q2:boolean">false</Value>
-      </Property>
-      <Property>
-        <Name>UsedTableName</Name>
-        <Value
-          type="q3:string">[dbo].[DimCliente]</Value>
-      </Property>
-      <Property>
-        <Name>TableInfoObjectType</Name>
-        <Value
-          type="q4:int">0</Value>
+          type="q4:string">0</Value>
       </Property>
       <Property>
         <Name>DataSourceViewID</Name>
