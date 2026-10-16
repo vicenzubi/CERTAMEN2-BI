@@ -85,7 +85,7 @@ El script DDL de creación de la base de datos dimensional (`DW_BikeZ`), junto c
 ![Flujo de Datos FactVentas](docs/modelo-dimensional/etl_fact_ventas.png)
 
 ### Validación y Cuadratura
-Se verificó la carga exacta de las **121.317 líneas de venta**, **274.914 unidades** y **$110.373.889,31 en ingresos** entre la base transaccional y el Data Warehouse. El script de auditoría está en [`02_Validacion_Carga_ETL.sql`](database/scripts/02_Validacion_Carga_ETL.sql).
+Se verificó la carga exacta de las **121.317 líneas de venta**, **274.914 unidades** y **$110.373.889,31 en ingresos** entre la base transaccional y el Data Warehouse. El script de auditoría está en [`02_Validacion_Carga_ETL.sql`](database/scripts/02_Validacion_carga_ETL.sql).
 
 ![Validación de Carga ETL](docs/modelo-dimensional/evidencia_validacion_etl.png)
 ---
@@ -137,7 +137,7 @@ Existen dos opciones para cargar la base de datos dimensional en su entorno loca
 4. El paquete ejecutará primero la tarea de limpieza (`Limpiar DW_BikeZ`) garantizando la idempotencia, y luego poblará las 5 dimensiones y la tabla de hechos.
 
 ### Paso 3: Verificación 
-Para verificar que los datos cargados son exactos, ejecutar el script [`database/scripts/02_Validacion_Carga_ETL.sql`](database/scripts/02_Validacion_Carga_ETL.sql) en SSMS.
+Para verificar que los datos cargados son exactos, ejecutar el script [`database/scripts/02_Validacion_Carga_ETL.sql`](database/scripts/02_Validacion_carga_ETL.sql) en SSMS.
 
 ---
 ## Distribución de responsabilidades y aportes
