@@ -1,0 +1,204 @@
+// ============================================================================
+// CASO 2 - BIKE Z | FASE 2 - Medidas DAX del dashboard "Dashboard_BikeZ.pbix"
+// ----------------------------------------------------------------------------
+// Modelo en Power BI (modo Importar desde SQL Server, base DW_BikeZ):
+//   FactVentas    <- dbo.vw_FactVentas
+//   DimTiempo     <- dbo.vw_DimTiempo   (marcada como tabla de fechas, columna Fecha)
+//   DimProducto   <- dbo.vw_DimProducto
+//   DimCliente    <- dbo.vw_DimCliente
+//   DimVendedor   <- dbo.vw_DimVendedor
+//   DimTerritorio <- dbo.vw_DimTerritorio
+// Relaciones (1 a varios, filtro simple):
+//   DimTiempo[TiempoKey]         -> FactVentas[FechaPedidoKey]   ACTIVA
+//   DimTiempo[TiempoKey]         -> FactVentas[FechaEnvioKey]    INACTIVA (USERELATIONSHIP)
+//   DimProducto[ProductoKey]     -> FactVentas[ProductoKey]
+//   DimCliente[ClienteKey]       -> FactVentas[ClienteKey]
+//   DimVendedor[VendedorKey]     -> FactVentas[VendedorKey]
+//   DimTerritorio[TerritorioKey] -> FactVentas[TerritorioKey]
+//
+// Cómo crear cada medida: Inicio > Especificar datos > tabla vacía "Medidas"
+// (Cargar). Luego, con la tabla "Medidas" seleccionada: Nueva medida, pegar
+// UNA medida (desde el nombre hasta el final de su fórmula) y Enter.
+// Las carpetas sugeridas se asignan en Vista de modelo > Propiedades >
+// "Carpeta para mostrar".
+// ============================================================================
+
+
+// ---------------------------------------------------------------- Base -----
+Ingresos =
+SUM ( FactVentas[MontoTotalLinea] )
+
+Unidades =
+SUM ( FactVentas[Cantidad] )
+
+Ordenes =
+DISTINCTCOUNT ( FactVentas[VentaID] )
+
+Lineas Venta =
+COUNTROWS ( FactVentas )
+
+Primera Fecha con Ventas =
+VAR k = CALCULATE ( MIN ( FactVentas[FechaPedidoKey] ), REMOVEFILTERS () )
+RETURN DATE ( INT ( k / 10000 ), MOD ( INT ( k / 100 ), 100 ), MOD ( k, 100 ) )
+
+Ultima Fecha con Ventas =
+VAR k = CALCULATE ( MAX ( FactVentas[FechaPedidoKey] ), REMOVEFILTERS () )
+RETURN DATE ( INT ( k / 10000 ), MOD ( INT ( k / 100 ), 100 ), MOD ( k, 100 ) )
+
+
+// ------------------------------------------- KPI 1 · Crecimiento (carpeta KPI 1)
+Ingresos Mes Anterior =
+CALCULATE ( [Ingresos], DATEADD ( DimTiempo[Fecha], -1, MONTH ) )
+
+Crecimiento vs Mes Anterior % =
+DIVIDE ( [Ingresos] - [Ingresos Mes Anterior], [Ingresos Mes Anterior] )
+
+// Compara sólo fechas con datos: si el período actual está incompleto
+// (ej. 2018 llega a julio), se compara contra el mismo tramo del año anterior.
+Ingresos Año Anterior =
+VAR UltimaFecha = [Ultima Fecha con Ventas]
+VAR FechasConDatos =
+    FILTER ( VALUES ( DimTiempo[Fecha] ), DimTiempo[Fecha] <= UltimaFecha )
+RETURN
+    CALCULATE ( [Ingresos], SAMEPERIODLASTYEAR ( FechasConDatos ) )
+
+// No se calcula si el período de comparación es anterior al inicio de los
+// datos (2015 sólo tiene julio a diciembre).
+Crecimiento Interanual % =
+VAR UltimaFecha = [Ultima Fecha con Ventas]
+VAR FechasConDatos =
+    FILTER ( VALUES ( DimTiempo[Fecha] ), DimTiempo[Fecha] <= UltimaFecha )
+VAR InicioComparacion =
+    MINX ( SAMEPERIODLASTYEAR ( FechasConDatos ), DimTiempo[Fecha] )
+RETURN
+    IF (
+        ISBLANK ( InicioComparacion ) || InicioComparacion < [Primera Fecha con Ventas],
+        BLANK (),
+        DIVIDE ( [Ingresos] - [Ingresos Año Anterior], [Ingresos Año Anterior] )
+    )
+
+Meta Crecimiento % =
+0.10
+
+Ingresos Acumulados Año =
+TOTALYTD ( [Ingresos], DimTiempo[Fecha] )
+
+Color Crecimiento =
+VAR c = [Crecimiento Interanual %]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( c ), "#8A94A6",
+        c >= [Meta Crecimiento %], "#2E7D4F",
+        c >= 0, "#E0A100",
+        "#C0392B"
+    )
+
+
+// --------------------------------------------- KPI 2 · Despacho (carpeta KPI 2)
+// Promedio POR ORDEN: sólo la primera línea de cada orden aporta (vista vw_FactVentas).
+Tiempo Promedio Despacho =
+DIVIDE ( SUM ( FactVentas[DiasDespachoOrden] ), SUM ( FactVentas[EsPrimeraLineaOrden] ) )
+
+Ordenes Despacho Tardio =
+SUM ( FactVentas[EsDespachoTardio] )
+
+Tasa Despacho Tardio % =
+DIVIDE ( [Ordenes Despacho Tardio], SUM ( FactVentas[EsPrimeraLineaOrden] ) )
+
+Meta Despacho Dias =
+7
+
+Despacho Maximo Dias =
+MAX ( FactVentas[DiasDespacho] )
+
+// Órdenes contadas por FECHA DE ENVÍO (usa la relación inactiva).
+Ordenes Despachadas =
+CALCULATE (
+    SUM ( FactVentas[EsPrimeraLineaOrden] ),
+    USERELATIONSHIP ( FactVentas[FechaEnvioKey], DimTiempo[TiempoKey] )
+)
+
+Color Despacho =
+SWITCH (
+    TRUE (),
+    ISBLANK ( [Tiempo Promedio Despacho] ), "#8A94A6",
+    [Tiempo Promedio Despacho] <= [Meta Despacho Dias], "#2E7D4F",
+    [Tiempo Promedio Despacho] <= [Meta Despacho Dias] * 1.10, "#E0A100",
+    "#C0392B"
+)
+
+
+// ---------------------------------------------- KPI 3 · Catálogo (carpeta KPI 3)
+Participacion Ingresos % =
+DIVIDE ( [Ingresos], CALCULATE ( [Ingresos], REMOVEFILTERS ( DimProducto ) ) )
+
+Participacion Unidades % =
+DIVIDE ( [Unidades], CALCULATE ( [Unidades], REMOVEFILTERS ( DimProducto ) ) )
+
+Precio Promedio Unitario =
+DIVIDE ( [Ingresos], [Unidades] )
+
+Ranking Producto =
+IF (
+    ISINSCOPE ( DimProducto[NombreProducto] ),
+    RANKX ( ALLSELECTED ( DimProducto[NombreProducto] ), [Ingresos], , DESC, DENSE )
+)
+
+Productos Vendidos =
+DISTINCTCOUNT ( FactVentas[ProductoKey] )
+
+
+// ------------------------------------------- KPI 4 · Vendedores (carpeta KPI 4)
+Ticket Promedio =
+DIVIDE ( [Ingresos], [Ordenes] )
+
+Ticket Promedio Fuerza Ventas =
+CALCULATE (
+    [Ticket Promedio],
+    REMOVEFILTERS ( DimVendedor ),
+    DimVendedor[TipoVenta] = "Con Vendedor"
+)
+
+Desviacion Ticket vs Fuerza Ventas % =
+DIVIDE ( [Ticket Promedio] - [Ticket Promedio Fuerza Ventas], [Ticket Promedio Fuerza Ventas] )
+
+Participacion Vendedor % =
+DIVIDE ( [Ingresos], CALCULATE ( [Ingresos], REMOVEFILTERS ( DimVendedor ) ) )
+
+Ingresos Fuerza Ventas =
+CALCULATE ( [Ingresos], DimVendedor[TipoVenta] = "Con Vendedor" )
+
+Ingresos Venta Directa =
+CALCULATE ( [Ingresos], DimVendedor[TipoVenta] = "Venta Directa" )
+
+% Ingresos Venta Directa =
+DIVIDE ( [Ingresos Venta Directa], [Ingresos] )
+
+Vendedores Activos =
+CALCULATE (
+    DISTINCTCOUNT ( FactVentas[VendedorKey] ),
+    DimVendedor[TipoVenta] = "Con Vendedor"
+)
+
+Ingreso Promedio por Vendedor =
+DIVIDE ( [Ingresos Fuerza Ventas], [Vendedores Activos] )
+
+Color Ticket =
+SWITCH (
+    TRUE (),
+    ISBLANK ( [Ticket Promedio] ), "#8A94A6",
+    [Ticket Promedio] >= [Ticket Promedio Fuerza Ventas], "#2E7D4F",
+    [Ticket Promedio] >= [Ticket Promedio Fuerza Ventas] * 0.80, "#E0A100",
+    "#C0392B"
+)
+
+
+// ============================================================================
+// Valores esperados SIN filtros (para validar contra 04_Consultas_KPI.sql):
+//   Ingresos 110.373.033,93 | Unidades 274.914 | Ordenes 31.465 | Lineas 121.317
+//   Tiempo Promedio Despacho 6,99 | Ordenes Despacho Tardio 58
+//   Ticket Promedio 3.507,80 | Ticket Promedio Fuerza Ventas 21.281,26
+//   % Ingresos Venta Directa 26,60 %
+// Con filtro Año = 2017: Crecimiento Interanual % = 37,10 %
+// ============================================================================
