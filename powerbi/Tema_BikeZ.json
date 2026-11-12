@@ -1,0 +1,42 @@
+{
+  "name": "Bike Z - Tema corporativo",
+  "dataColors": [
+    "#1F3A5F",
+    "#E8772E",
+    "#2A9D8F",
+    "#E9C46A",
+    "#6C8EBF",
+    "#B5523B",
+    "#7A6C9E",
+    "#8A94A6"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#1B2430",
+  "tableAccent": "#1F3A5F",
+  "good": "#2E7D4F",
+  "neutral": "#E0A100",
+  "bad": "#C0392B",
+  "maximum": "#1F3A5F",
+  "center": "#E9C46A",
+  "minimum": "#F4F6F9",
+  "textClasses": {
+    "title": { "fontFace": "Segoe UI Semibold", "fontSize": 12, "color": "#1B2430" },
+    "header": { "fontFace": "Segoe UI Semibold", "fontSize": 11, "color": "#1B2430" },
+    "label": { "fontFace": "Segoe UI", "fontSize": 10, "color": "#4A5568" },
+    "callout": { "fontFace": "Segoe UI Semibold", "fontSize": 24, "color": "#1F3A5F" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "show": true, "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 }],
+        "border": [{ "show": true, "color": { "solid": { "color": "#E2E6EC" } }, "radius": 6 }],
+        "visualHeader": [{ "show": true }]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#F4F6F9" } }, "transparency": 0 }]
+      }
+    }
+  }
+}

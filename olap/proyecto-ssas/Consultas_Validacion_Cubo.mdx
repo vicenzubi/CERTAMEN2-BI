@@ -1,0 +1,111 @@
+/* ============================================================================
+   CASO 2 - BIKE Z | FASE 2
+   Consultas MDX de validación del cubo "Cubo Ventas BikeZ"
+   ----------------------------------------------------------------------------
+   Cómo ejecutarlas:
+     SSMS > Conectar > Analysis Services > servidor (ej. localhost) >
+     clic derecho sobre la base OLAP_BikeZ > New Query > MDX.
+     Ejecute cada consulta por separado (seleccionar el bloque + F5).
+   Los valores esperados se obtuvieron con 04_Consultas_KPI.sql sobre DW_BikeZ.
+   ============================================================================ */
+
+-- Q1. Cuadratura general con el Data Warehouse
+--     Esperado: Monto 110.373.033,93 | Unidades 274.914 | Lineas 121.317 | Ordenes 31.465
+SELECT
+    { [Measures].[Monto Ventas], [Measures].[Unidades Vendidas],
+      [Measures].[Lineas Venta], [Measures].[Ordenes] } ON COLUMNS
+FROM [Cubo Ventas BikeZ];
+
+-- Q2. KPI 1 por año
+--     Esperado: 2015 11.336.079,76 | 2016 30.858.917,81 (+172,22 %)
+--               2017 42.308.189,79 (+37,10 %) | 2018 25.869.846,57 (-38,85 %, año incompleto)
+SELECT
+    { [Measures].[Monto Ventas], [Measures].[Ingresos Periodo Anterior],
+      [Measures].[Crecimiento vs Periodo Anterior] } ON COLUMNS,
+    NON EMPTY [Fecha Pedido].[Calendario].[Año].Members ON ROWS
+FROM [Cubo Ventas BikeZ];
+
+-- Q3. KPI 1 por mes: crecimiento interanual (mismo mes del año anterior)
+--     Esperado (ejemplos): Junio 2018 = 5.377.747 (+111,3 % vs junio 2017)
+--                          Marzo 2018 = 4.223.851 (+106,1 %)
+SELECT
+    { [Measures].[Monto Ventas], [Measures].[Ingresos Año Anterior],
+      [Measures].[Crecimiento Interanual] } ON COLUMNS,
+    NON EMPTY [Fecha Pedido].[Calendario].[Mes].Members ON ROWS
+FROM [Cubo Ventas BikeZ];
+
+-- Q4. KPI 1 por país (filas) y año (columnas)
+--     Esperado 2017: United States 23.051.136,94 | Canada 6.226.902,08 | Australia 3.909.398,36
+SELECT
+    NON EMPTY [Fecha Pedido].[Calendario].[Año].Members ON COLUMNS,
+    NON EMPTY [Territorio].[Geografia].[Pais].Members ON ROWS
+FROM [Cubo Ventas BikeZ]
+WHERE ( [Measures].[Monto Ventas] );
+
+-- Q5. KPI 2 por territorio
+--     Esperado: total 6,99 días | 58 órdenes tardías (0,18 %) | máximo 8 días
+SELECT
+    { [Measures].[Tiempo Promedio Despacho], [Measures].[Ordenes Base],
+      [Measures].[Ordenes Despacho Tardio], [Measures].[Tasa Despacho Tardio],
+      [Measures].[Dias Despacho Maximo] } ON COLUMNS,
+    NON EMPTY { [Territorio].[Geografia].[All],
+                [Territorio].[Geografia].[Territorio].Members } ON ROWS
+FROM [Cubo Ventas BikeZ];
+
+-- Q6. KPI 3 por categoría (ordenado por ingresos)
+--     Esperado: Road Bikes 43.978.266,78 (39,85 %) | Mountain Bikes 36.622.181,43 (33,18 %)
+--               Touring Bikes 14.545.045,49 (13,18 %)
+SELECT
+    { [Measures].[Monto Ventas], [Measures].[Unidades Vendidas],
+      [Measures].[Participacion Ingresos], [Measures].[Precio Promedio Unitario] } ON COLUMNS,
+    NON EMPTY ORDER( [Producto].[Categorias].[Categoria].Members,
+                     [Measures].[Monto Ventas], BDESC ) ON ROWS
+FROM [Cubo Ventas BikeZ];
+
+-- Q7. KPI 3 por grupo de categoría
+--     Esperado: Bicicletas 86,20 % | Componentes 10,70 % | Vestuario 1,94 % | Accesorios 1,16 %
+SELECT
+    { [Measures].[Monto Ventas], [Measures].[Participacion Ingresos],
+      [Measures].[Unidades Vendidas], [Measures].[Participacion Unidades] } ON COLUMNS,
+    NON EMPTY [Producto].[Categorias].[Grupo Categoria].Members ON ROWS
+FROM [Cubo Ventas BikeZ];
+
+-- Q8. KPI 4: venta directa vs fuerza de ventas
+--     Esperado: Con Vendedor 81.017.772,94 | 3.807 órdenes | ticket 21.281,26
+--               Venta Directa 29.355.260,99 | 27.658 órdenes | ticket 1.061,37
+SELECT
+    { [Measures].[Monto Ventas], [Measures].[Ordenes], [Measures].[Ticket Promedio],
+      [Measures].[Participacion Vendedor] } ON COLUMNS,
+    NON EMPTY [Vendedor].[Fuerza de Ventas].[Tipo Venta].Members ON ROWS
+FROM [Cubo Ventas BikeZ];
+
+-- Q9. KPI 4: ranking de vendedores
+--     Esperado (top 3): Vendedor 276 10.444.516,26 (ticket 24.986,88)
+--                       Vendedor 277 10.094.930,80 (ticket 21.342,35)
+--                       Vendedor 275  9.324.043,03 (ticket 20.720,10)
+SELECT
+    { [Measures].[Monto Ventas], [Measures].[Ordenes],
+      [Measures].[Ticket Promedio], [Measures].[Ticket Promedio Fuerza Ventas] } ON COLUMNS,
+    NON EMPTY ORDER(
+        [Vendedor].[Fuerza de Ventas].[Vendedor].Members,
+        [Measures].[Monto Ventas], BDESC ) ON ROWS
+FROM [Cubo Ventas BikeZ]
+WHERE ( [Vendedor].[Tipo Venta].&[Con Vendedor] );
+
+-- Q10. KPI 4 por rango de antigüedad (sólo con vendedor)
+--     Esperado: 17 años o más 61.383.802,71 (ticket 21.538,18)
+--               Entre 16 y 17 13.828.889,08 (ticket 24.606,56)
+--               Menos de 16    5.805.081,15 (ticket 14.696,41)
+SELECT
+    { [Measures].[Monto Ventas], [Measures].[Ordenes], [Measures].[Ticket Promedio] } ON COLUMNS,
+    NON EMPTY [Vendedor].[Rango Antiguedad].[Rango Antiguedad].Members ON ROWS
+FROM [Cubo Ventas BikeZ]
+WHERE ( [Vendedor].[Tipo Venta].&[Con Vendedor] );
+
+-- Q11. KPI del cubo (valor, meta y estado) para 2017
+SELECT
+    { KPIValue("KPI1 Crecimiento Ingresos"), KPIGoal("KPI1 Crecimiento Ingresos"), KPIStatus("KPI1 Crecimiento Ingresos"),
+      KPIValue("KPI2 Tiempo Despacho"),      KPIGoal("KPI2 Tiempo Despacho"),      KPIStatus("KPI2 Tiempo Despacho") } ON COLUMNS
+FROM [Cubo Ventas BikeZ]
+WHERE ( [Fecha Pedido].[Calendario].[Año].&[2017] );
+--     Esperado: crecimiento 37,10 % (meta 10 %, estado 1) | despacho 7,00 días (meta 7, estado 1)

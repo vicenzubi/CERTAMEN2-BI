@@ -1,0 +1,127 @@
+/* ============================================================================
+   CASO 2 - BIKE Z | FASE 2 - CUBO OLAP "Cubo Ventas BikeZ" (SSAS Multidimensional)
+   Script de cálculos MDX
+   ----------------------------------------------------------------------------
+   Dónde se pega:
+     Visual Studio > Cubo Ventas BikeZ.cube > pestaña "Calculations" >
+     botón "Script View" (ícono de hoja con texto) > reemplazar TODO el
+     contenido por este archivo > Guardar > Deploy.
+
+   Nombres que este script asume (deben coincidir exactamente):
+     Medidas físicas : [Monto Ventas], [Unidades Vendidas], [Lineas Venta],
+                       [Dias Despacho Orden], [Ordenes Base],
+                       [Ordenes Despacho Tardio], [Dias Despacho Maximo], [Ordenes]
+     Dimensiones     : [Fecha Pedido] (jerarquía [Calendario], nivel [Año])
+                       [Producto], [Vendedor] (jerarquía [Fuerza de Ventas])
+   ============================================================================ */
+
+CALCULATE;
+
+/* ----------------------------------------------------------------------------
+   KPI 1. Crecimiento de ingresos por ventas
+   ---------------------------------------------------------------------------- */
+
+-- Ingresos del período inmediatamente anterior en el MISMO nivel
+-- (mes anterior, trimestre anterior, año anterior...).
+CREATE MEMBER CURRENTCUBE.[Measures].[Ingresos Periodo Anterior] AS
+    ( [Measures].[Monto Ventas],
+      [Fecha Pedido].[Calendario].CurrentMember.PrevMember ),
+    FORMAT_STRING = "Currency",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 1 - Crecimiento', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+CREATE MEMBER CURRENTCUBE.[Measures].[Crecimiento vs Periodo Anterior] AS
+    IIF( IsEmpty([Measures].[Ingresos Periodo Anterior]) OR [Measures].[Ingresos Periodo Anterior] = 0,
+         NULL,
+         ( [Measures].[Monto Ventas] - [Measures].[Ingresos Periodo Anterior] )
+           / [Measures].[Ingresos Periodo Anterior] ),
+    FORMAT_STRING = "Percent",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 1 - Crecimiento', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+-- Mismo período del año anterior (ej.: marzo 2018 vs marzo 2017).
+CREATE MEMBER CURRENTCUBE.[Measures].[Ingresos Año Anterior] AS
+    IIF( [Fecha Pedido].[Calendario].CurrentMember.Level.Ordinal = 0,   -- nivel (Todos): no aplica
+         NULL,
+         ( [Measures].[Monto Ventas],
+           ParallelPeriod( [Fecha Pedido].[Calendario].[Año], 1,
+                           [Fecha Pedido].[Calendario].CurrentMember ) ) ),
+    FORMAT_STRING = "Currency",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 1 - Crecimiento', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+CREATE MEMBER CURRENTCUBE.[Measures].[Crecimiento Interanual] AS
+    IIF( IsEmpty([Measures].[Ingresos Año Anterior]) OR [Measures].[Ingresos Año Anterior] = 0,
+         NULL,
+         ( [Measures].[Monto Ventas] - [Measures].[Ingresos Año Anterior] )
+           / [Measures].[Ingresos Año Anterior] ),
+    FORMAT_STRING = "Percent",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 1 - Crecimiento', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+/* ----------------------------------------------------------------------------
+   KPI 2. Tiempo promedio de despacho (días), promedio POR ORDEN
+   [Dias Despacho Orden] y [Ordenes Base] sólo cuentan la primera línea de
+   cada orden (ver vista vw_FactVentas), por lo que el cociente no se ve
+   afectado por la cantidad de productos de cada orden.
+   ---------------------------------------------------------------------------- */
+CREATE MEMBER CURRENTCUBE.[Measures].[Tiempo Promedio Despacho] AS
+    IIF( [Measures].[Ordenes Base] = 0, NULL,
+         [Measures].[Dias Despacho Orden] / [Measures].[Ordenes Base] ),
+    FORMAT_STRING = "#,##0.00",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 2 - Despacho', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+CREATE MEMBER CURRENTCUBE.[Measures].[Tasa Despacho Tardio] AS
+    IIF( [Measures].[Ordenes Base] = 0, NULL,
+         [Measures].[Ordenes Despacho Tardio] / [Measures].[Ordenes Base] ),
+    FORMAT_STRING = "0.00%",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 2 - Despacho', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+/* ----------------------------------------------------------------------------
+   KPI 3. Ingresos, volumen y participación por categoría
+   ---------------------------------------------------------------------------- */
+CREATE MEMBER CURRENTCUBE.[Measures].[Participacion Ingresos] AS
+    IIF( ( [Measures].[Monto Ventas], Root([Producto]) ) = 0, NULL,
+         [Measures].[Monto Ventas] / ( [Measures].[Monto Ventas], Root([Producto]) ) ),
+    FORMAT_STRING = "Percent",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 3 - Catalogo', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+CREATE MEMBER CURRENTCUBE.[Measures].[Participacion Unidades] AS
+    IIF( ( [Measures].[Unidades Vendidas], Root([Producto]) ) = 0, NULL,
+         [Measures].[Unidades Vendidas] / ( [Measures].[Unidades Vendidas], Root([Producto]) ) ),
+    FORMAT_STRING = "Percent",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 3 - Catalogo', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+CREATE MEMBER CURRENTCUBE.[Measures].[Precio Promedio Unitario] AS
+    IIF( [Measures].[Unidades Vendidas] = 0, NULL,
+         [Measures].[Monto Ventas] / [Measures].[Unidades Vendidas] ),
+    FORMAT_STRING = "Currency",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 3 - Catalogo', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+CREATE MEMBER CURRENTCUBE.[Measures].[Unidades Año Anterior] AS
+    IIF( [Fecha Pedido].[Calendario].CurrentMember.Level.Ordinal = 0,   -- nivel (Todos): no aplica
+         NULL,
+         ( [Measures].[Unidades Vendidas],
+           ParallelPeriod( [Fecha Pedido].[Calendario].[Año], 1,
+                           [Fecha Pedido].[Calendario].CurrentMember ) ) ),
+    FORMAT_STRING = "#,##0",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 3 - Catalogo', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+/* ----------------------------------------------------------------------------
+   KPI 4. Rendimiento comercial y ticket promedio por vendedor
+   ---------------------------------------------------------------------------- */
+CREATE MEMBER CURRENTCUBE.[Measures].[Ticket Promedio] AS
+    IIF( [Measures].[Ordenes] = 0, NULL,
+         [Measures].[Monto Ventas] / [Measures].[Ordenes] ),
+    FORMAT_STRING = "Currency",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 4 - Vendedores', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+-- Ticket promedio de toda la fuerza de ventas (sólo órdenes con vendedor):
+-- se usa como meta de referencia del KPI 4.
+CREATE MEMBER CURRENTCUBE.[Measures].[Ticket Promedio Fuerza Ventas] AS
+    ( [Measures].[Ticket Promedio],
+      [Vendedor].[Fuerza de Ventas].[Tipo Venta].&[Con Vendedor] ),
+    FORMAT_STRING = "Currency",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 4 - Vendedores', ASSOCIATED_MEASURE_GROUP = 'Ventas';
+
+CREATE MEMBER CURRENTCUBE.[Measures].[Participacion Vendedor] AS
+    IIF( ( [Measures].[Monto Ventas], Root([Vendedor]) ) = 0, NULL,
+         [Measures].[Monto Ventas] / ( [Measures].[Monto Ventas], Root([Vendedor]) ) ),
+    FORMAT_STRING = "Percent",
+    VISIBLE = 1, DISPLAY_FOLDER = 'KPI 4 - Vendedores', ASSOCIATED_MEASURE_GROUP = 'Ventas';

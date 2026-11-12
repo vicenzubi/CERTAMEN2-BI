@@ -89,15 +89,54 @@ Se verificó la carga exacta de las **121.317 líneas de venta**, **274.914 unid
 
 ![Validación de Carga ETL](docs/modelo-dimensional/evidencia_validacion_etl.png)
 ---
+## Capa analítica - Fase 2
+Para no modificar el modelo físico ni el ETL validados en la Fase 1, se creó una capa de **vistas analíticas** sobre `DW_BikeZ` ([`03_Vistas_Analiticas.sql`](database/scripts/03_Vistas_Analiticas.sql)) que alimenta tanto al cubo OLAP como al dashboard:
+
+| Vista | Atributos agregados | Uso |
+| :--- | :--- | :--- |
+| `vw_DimTiempo` | Claves y nombres únicos por nivel (`SemestreKey`, `TrimestreKey`, `MesKey`, `MesNombre`...) | Jerarquía *Calendario* Año > Semestre > Trimestre > Mes > Fecha |
+| `vw_DimProducto` | `GrupoCategoria` (Bicicletas, Componentes, Vestuario, Accesorios, Sin Categoría) | Jerarquía *Categorías* |
+| `vw_DimVendedor` | `NombreVendedor`, `TipoVenta`, `AniosAntiguedad`, `Edad` y rangos de antigüedad, vacaciones y edad | Análisis del KPI 4 |
+| `vw_DimTerritorio`, `vw_DimCliente` | Paso directo | Consistencia de la capa |
+| `vw_FactVentas` | `EsPrimeraLineaOrden`, `DiasDespachoOrden`, `EsDespachoTardio` | KPI 2 calculado **por orden** y no por línea |
+
+Los valores de referencia de cada KPI se calculan en SQL con [`04_Consultas_KPI.sql`](database/scripts/04_Consultas_KPI.sql) y se usan para validar el cubo y el dashboard.
+
 ## Cubo OLAP - Fase 2
-*(Pendiente para Fase 2)*
+Proyecto **SSAS Multidimensional** `OLAP_BikeZ` (carpeta [`olap/proyecto-ssas/`](olap/proyecto-ssas/)), con el cubo **`Cubo Ventas BikeZ`**:
+
+* **Dimensiones:** `Fecha Pedido` y `Fecha Envio` (rol múltiple de *Tiempo*), `Producto`, `Cliente`, `Vendedor` y `Territorio`, con las jerarquías *Calendario*, *Categorias*, *Fuerza de Ventas* y *Geografia*.
+* **Grupos de medidas:** `Ventas` (Monto Ventas, Unidades Vendidas, Lineas Venta, Ordenes Despacho Tardio, Dias Despacho Maximo y medidas auxiliares) y `Ordenes` (conteo distinto de `VentaID`).
+* **Cálculos MDX** ([`Calculos_Cubo_BikeZ.mdx`](olap/proyecto-ssas/Calculos_Cubo_BikeZ.mdx)): crecimiento vs período anterior e interanual (`ParallelPeriod`), tiempo promedio de despacho por orden, participación por categoría y vendedor, ticket promedio.
+* **KPI del cubo** ([`KPI_Cubo_BikeZ.md`](olap/proyecto-ssas/KPI_Cubo_BikeZ.md)): valor, meta, estado y tendencia para los 4 KPI.
+* **Validación:** [`Consultas_Validacion_Cubo.mdx`](olap/proyecto-ssas/Consultas_Validacion_Cubo.mdx) con los valores esperados de cada consulta.
 
 ## Dashboard Power BI - Fase 2
-*(Pendiente para Fase 2)*
+Archivo [`powerbi/Dashboard_BikeZ.pbix`](powerbi/) en modo **Importar** desde las vistas de `DW_BikeZ` (el archivo es autocontenido y puede abrirse sin conexión al servidor). Contiene 5 páginas orientadas a la gerencia:
+
+1. **Resumen Ejecutivo** - tarjetas de los 4 KPI, tendencia mensual y mapa por país.
+2. **KPI 1 · Crecimiento de ingresos** - crecimiento interanual y mensual, matriz país × año.
+3. **KPI 2 · Tiempo de despacho** - medidor contra la meta de 7 días, detalle por territorio y mes.
+4. **KPI 3 · Catálogo** - participación por grupo y categoría, top 10 de productos.
+5. **KPI 4 · Fuerza de ventas** - ingresos y ticket por vendedor, antigüedad y venta directa.
+
+Las medidas DAX están en [`Medidas_DAX_BikeZ.dax`](powerbi/Medidas_DAX_BikeZ.dax) y el tema corporativo en [`Tema_BikeZ.json`](powerbi/Tema_BikeZ.json).
+
+### Principales resultados
+| KPI | Resultado |
+| :--- | :--- |
+| Crecimiento de ingresos | +37,1 % en 2017 vs 2016; +71,6 % en ene-jun 2018 vs ene-jun 2017. Europa y Pacífico crecen más rápido que Norteamérica. |
+| Tiempo de despacho | 6,99 días promedio por orden; 98,5 % de las órdenes se despacha en exactamente 7 días. |
+| Categorías | Las bicicletas generan el 86,2 % de los ingresos con el 32,8 % de las unidades. |
+| Vendedores | 26,6 % de los ingresos proviene de ventas directas; ticket de la fuerza de ventas 21.281 vs 1.061 en venta directa. |
+
+![Ingresos mensuales](docs/fase2/kpi1_ingresos_mensuales.png)
 
 ## Tecnologías utilizadas
 * **Motor de Base de Datos:** Microsoft SQL Server (SSMS)
 * **Proceso ETL:** SQL Server Integration Services (SSIS) en Visual Studio 
+* **Cubo OLAP:** SQL Server Analysis Services (SSAS) Multidimensional en Visual Studio
+* **Dashboard:** Power BI Desktop
 * **Control de Versiones:** Git & GitHub
 
 ## Estructura del repositorio
@@ -106,15 +145,18 @@ CERTAMEN2-BI/
 |-- README.md
 |-- docs/
 | |-- modelo-dimensional/
+| `-- fase2/            (gráficos de resultados y wireframes del dashboard)
 |-- database/
 | |-- scripts/
 | `-- backup/
 |-- etl/
 | `-- proyecto-ssis/
 |-- olap/
-| `-- proyecto-ssas/
+| `-- proyecto-ssas/     (proyecto OLAP_BikeZ, cálculos MDX, KPI y consultas de validación)
 `-- powerbi/
-  `-- dashboard.pbix
+  |-- Dashboard_BikeZ.pbix
+  |-- Medidas_DAX_BikeZ.dax
+  `-- Tema_BikeZ.json
 ```
 
 ## Instrucciones de ejecución/revisión
@@ -139,10 +181,23 @@ Existen dos opciones para cargar la base de datos dimensional en su entorno loca
 ### Paso 3: Verificación 
 Para verificar que los datos cargados son exactos, ejecutar el script [`database/scripts/02_Validacion_Carga_ETL.sql`](database/scripts/02_Validacion_Carga_Etl.sql) en SSMS.
 
+### Paso 4: Capa analítica (Fase 2)
+1. Ejecutar [`03_Vistas_Analiticas.sql`](database/scripts/03_Vistas_Analiticas.sql) en SSMS (si se restauró el backup, las vistas ya existen).
+2. (Opcional) Ejecutar [`04_Consultas_KPI.sql`](database/scripts/04_Consultas_KPI.sql) para obtener los valores de referencia de los KPI.
+
+### Paso 5: Cubo OLAP
+1. Abrir la solución `etl/proyecto-ssis/ETL_BikeZ/ETL_BikeZ.sln` (incluye el proyecto `OLAP_BikeZ`) o directamente el proyecto de `olap/proyecto-ssas/`.
+2. En el *Data Source* `DW BikeZ`, ajustar el nombre del servidor. En las propiedades del proyecto (*Deployment*), ajustar el servidor de Analysis Services.
+3. **Deploy** del proyecto. Si aparece *Login failed for user 'NT Service\MSSQLServerOLAPService'*, ejecutar [`05_Permisos_SSAS.sql`](database/scripts/05_Permisos_SSAS.sql) y volver a procesar.
+4. Validar con [`Consultas_Validacion_Cubo.mdx`](olap/proyecto-ssas/Consultas_Validacion_Cubo.mdx) en SSMS (conexión a Analysis Services).
+
+### Paso 6: Dashboard
+Abrir `powerbi/Dashboard_BikeZ.pbix` con Power BI Desktop. Para refrescar los datos, ajustar el servidor en *Transformar datos > Configuración de origen de datos*.
+
 ---
 ## Distribución de responsabilidades y aportes
 El desarrollo de este proyecto se gestionó mediante control de versiones en GitHub, utilizando ramas (`feature/`) y *Pull Requests* para la revisión de código cruzada. 
 
  **Vicente Zubicueta** : Configurador principal del repositorio, desarrollo integral del paquete SSIS, diseño físico del modelo en estrella y elaboración del script DDL, creación de los scripts SQL de validación de carga. 
 
- **Joaquin Ojeda** : Definición y justificación estratégica de los 4 KPIs del negocio, aplicación de la metodología Kimball, estructuración de la documentación y diagramas.
+ **Joaquin Ojeda** : Definición y justificación estratégica de los 4 KPIs del negocio, aplicación de la metodología Kimball, estructuración de la documentación y diagramas. En la Fase 2: vistas analíticas, cubo OLAP en SSAS, dashboard en Power BI e informe final.
